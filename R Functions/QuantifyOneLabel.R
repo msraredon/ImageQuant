@@ -1,11 +1,9 @@
 QuantifyOneLabel <- function(image = image.object,
-                               base.criteria = c('Dapi'),
-                               label.criteria = c('Sox9','Abca3'),
-                               label.name = 'BASC-like',
-                               num.pixels.per.chunk = 1000){
+                              label.name = 'BASC-like',
+                              base.criteria = c('Dapi'),
+                              label.criteria = c('Sox9','Abca3'),
+                              n.chunks){
   # Split into chunks
-  
-  # Break into chunks to allow statistical measurements
   n.chunks <- 20
   test <- split(pn0, (seq(nrow(pn0))-1) %/% (nrow(pn0)/n.chunks)) # break into chunks
   
@@ -17,10 +15,8 @@ QuantifyOneLabel <- function(image = image.object,
   test.output$chunk <- c(1:nrow(test.output))
   test.output$condition <- 'pn0'
   test.output <- melt(test.output,id.vars = c('condition','chunk'))
-  
-  pn0.output <- test.output
-  
-  p1 <- ggplot(pn0.output,aes(x=variable,y=value))+geom_violin()+geom_point()+ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+  p1 <- ggplot(test.output,aes(x=variable,y=value))+geom_violin()+geom_point()+ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
   
   
   
