@@ -1,25 +1,33 @@
-QuantifyOneLabel <- function(image = image.object,
-                              label.name = 'BASC-like',
-                              base.criteria = c('Dapi'),
-                              label.criteria = c('Sox9','Abca3'),
-                              n.chunks){
-  # Split into chunks
-  n.chunks <- 20
-  test <- split(pn0, (seq(nrow(pn0))-1) %/% (nrow(pn0)/n.chunks)) # break into chunks
+QuantifyOneLabel <- function(chunked.data,
+                             label.name = 'BASC-like Quiescent',
+                             base.criteria = c('DAPI'),
+                             label.criteria.positive = c('Sox9','Abca3'),
+                             label.criteria.negative = c('EdU')){
+  # Load QuantFunction
+  #source('QuantFunction.R')
   
-  # For each chunk, run
-  source('QuantFunction.R')
+  n.chunks <- length(chunked.data)
   
-  test.output <- lapply(test,FUN = QuantFunction)
+  # Apply QuantFunction
+  message(paste('Applying QuantFunction to',n.chunks,'chunks...'))
+  test.output <- lapply(X = chunked.data,
+                        FUN = QuantFunction,
+                        label.name = label.name,
+                        base.criteria = base.criteria,
+                        label.criteria.positive = label.criteria.positive,
+                        label.criteria.negative = label.criteria.negative)
+  
+  # Bind into datafram
+  message('Binding into dataframe structure...')
   test.output <- dplyr::bind_rows(test.output)
   test.output$chunk <- c(1:nrow(test.output))
-  test.output$condition <- 'pn0'
-  test.output <- melt(test.output,id.vars = c('condition','chunk'))
-
-  p1 <- ggplot(test.output,aes(x=variable,y=value))+geom_violin()+geom_point()+ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  colnames(test.output)[which(names(test.output) == 'frac.positive')] <- label.name
   
+  # Convert to percentages
+  message('Converting to percentages...')
+  test.output[[label.name]] <- test.output[[label.name]]*100 # convert to percentages
   
-  
-  # Bind chunk outputs together as a single column of a dataframe with #rows == #chunks
-  
+  # Output measurements
+  message('Outputting binned measurements...')
+  return(test.output[[label.name]])
 }
