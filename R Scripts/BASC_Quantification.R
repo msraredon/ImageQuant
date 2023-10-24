@@ -1,6 +1,6 @@
 # Set WD
 setwd("/Users/msbr/Library/CloudStorage/GoogleDrive-michasam.raredon@yale.edu/My Drive/Raredon_Lab_Administration/Lab Members/Satoshi")
-setwd("/Users/msbr/GitHub/ImageQuant")
+
 
 # Packages
 require(EBImage)
@@ -10,6 +10,7 @@ require(Seurat)
 require(ggpubr)
 
 # Load local quantification functions
+setwd("/Users/msbr/GitHub/ImageQuant")
 source('R Functions/LoadImageChannels.R')
 source('R Functions/PreProcessImage.R')
 source('R Functions/QuantFunction.R')
@@ -33,11 +34,12 @@ display(images.raw$DAPI)
 # Normalize each channel
 images.norm <- NormalizeImages(images.raw)
 display(images.norm$DAPI)
+display(images.norm$Sox9)
 
 # PreProcess image channels
 images.processed <- PreProcessImage(images.norm = images.norm,
                                     box.dim = 1000,
-                                    offset = 0.01)
+                                    offset = 0.01) # These parameters will make a huge difference in your outputs and should be tuned + checked
 display(images.processed$DAPI)
 display(images.processed$Sox9)
 display(images.processed$Abca3)
@@ -51,6 +53,7 @@ num.pixels.per.chunk = 500000 # experiment with chunk size to yield a good numbe
 num.pix <- nrow(image.object) # total number of pixels
 n.chunks <- floor(num.pix/num.pixels.per.chunk)
 message(paste(num.pixels.per.chunk,'pixels per chunk will yield',n.chunks,'total chunks'))
+
 chunked.data <- ChunkIt(image.object = image.object,
                         n.chunks = n.chunks)
 
@@ -156,4 +159,16 @@ ggplot(data=data,
              position = position_jitterdodge(dodge.width = 0.9,jitter.width=0.25))+
   theme_classic()+
   ylab('Fraction of DAPI Pixels')
+dev.off()
+
+png('Test.Output.Demo.png',width = 6,height = 5,units='in',res=300)
+ggplot(data = data,
+       aes(x = Condition,y=value,fill=variable,color=variable))+
+  geom_violin()+
+  geom_point(position = position_jitterdodge(dodge.width = 0.9,jitter.width=0.25),size=0.1,color='black')+
+  theme_classic()+
+  ggtitle('Effect of Matrigel on Epithelial Stemness in 2D Culture')+
+  ylab('Fraction of DAPI+ Pixels')+
+  scale_fill_manual(values = c('#93B7BE','#F19A3E','#3D3B8E','#E072A4'))+
+  scale_color_manual(values = c('#93B7BE','#F19A3E','#3D3B8E','#E072A4'))
 dev.off()

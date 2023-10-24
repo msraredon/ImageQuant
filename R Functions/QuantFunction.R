@@ -7,7 +7,7 @@ QuantFunction <- function(pixels,
   
   # temp for testing
   #pixels <- test[[1]]
-
+base <- base.criteria
   # What fraction of pixels satisfy the base.criteria?
   sub <- pixels
   for(i in 1:length(base)){
