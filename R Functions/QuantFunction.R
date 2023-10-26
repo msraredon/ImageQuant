@@ -1,30 +1,54 @@
 
 QuantFunction <- function(pixels,
                           label.name = 'BASC-like Quiescent',
-                          base.criteria = c('DAPI'),
+                          base.criteria.positive = c('DAPI'),
+                          base.criteria.negative = NULL,
                           label.criteria.positive = c('Sox9','Abca3'),
                           label.criteria.negative = c('EdU')){
   
   # temp for testing
   #pixels <- test[[1]]
-base <- base.criteria
-  # What fraction of pixels satisfy the base.criteria?
-  sub <- pixels
-  for(i in 1:length(base)){
-    sub <- sub[sub[[base[i]]]>0,] # All base conditions must be positive
-  }
-  # What fraction of the above base pixels satisfy label.criteria.positive?
-  sub.2 <- sub
-  for(i in 1:length(label.criteria.positive)){
-    sub.2 <- sub.2[sub.2[[label.criteria.positive[i]]]>0,]
-  }
-  # What fraction of the above pixels satisfy label.criteria.negative?
-  sub.3 <- sub.2
-  for(i in 1:length(label.criteria.negative)){
-    sub.3 <- sub.3[sub.3[[label.criteria.negative[i]]]==0,]
+  
+  # What fraction of pixels satisfy the base.criteria.positive?
+  if(!is.null(base.criteria.positive)){
+    sub <- pixels
+      for(i in 1:length(base.criteria.positive)){
+        sub <- sub[sub[[base.criteria.positive[i]]]>0,] # All base.criteria.positive conditions must be positive
+      }
+      }else{
+        sub <- pixels # If no base criteria are provided, then consider all pixels
+      }
+  
+  # What fraction of the above satisfy the base.criteria.negative?
+  if(!is.null(base.criteria.negative)){
+    #sub <- sub
+    for(i in 1:length(base.criteria.negative)){
+      sub <- sub[sub[[base.criteria.negative[i]]]==0,] # All base.criteria.negative conditions must be negative
+    }
+  }else{
+    #sub <- sub # If no base.criteria.negative are provided, then consider all pixels meeting base.criteria.negative
   }
   
-  # Only count as true measure if we measured some base [pixels]
+  # What fraction of the above base pixels satisfy label.criteria.positive?
+  if(!is.null(label.criteria.positive)){
+    sub.2 <- sub
+      for(i in 1:length(label.criteria.positive)){
+        sub.2 <- sub.2[sub.2[[label.criteria.positive[i]]]>0,] # How many of the remaining pixels meet the positive criteria?
+      }
+    }else{
+      sub.2 <- sub # If no label.criteria.positive are provided, then consider all pixels meeting base.criteria
+    }
+  # What fraction of the above pixels satisfy label.criteria.negative?
+  if(!is.null(label.criteria.negative)){
+    sub.3 <- sub.2
+    for(i in 1:length(label.criteria.negative)){
+      sub.3 <- sub.3[sub.3[[label.criteria.negative[i]]]==0,] # How many of the remaining pixels meet the negative criteria?
+    }
+    }else{
+      sub.3 <- sub.2 # If no label.criteria.negative are provided, then consider all pixels meeting base.criteria
+    }
+  
+  # Only count as true measure if we measured some base pixels, otherwise, output NA
   if(nrow(sub)>0){
     frac.positive <- nrow(sub.3)/nrow(sub)
     }else{
